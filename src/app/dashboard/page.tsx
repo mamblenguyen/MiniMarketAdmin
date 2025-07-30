@@ -2,19 +2,14 @@
 
 import * as React from 'react';
 import { useEffect, useState } from 'react';
-import type { Metadata } from 'next';
 import { nestApiInstance } from '@/constant/api';
 import { Box, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import Grid from '@mui/material/Unstable_Grid2';
 import dayjs from 'dayjs';
 
-import { config } from '@/config';
 import { Budget } from '@/components/dashboard/overview/budget';
-import { LatestOrders } from '@/components/dashboard/overview/latest-orders';
-import { LatestProducts } from '@/components/dashboard/overview/latest-products';
 import { Sales } from '@/components/dashboard/overview/sales';
 import { TasksProgress } from '@/components/dashboard/overview/tasks-progress';
-import { TotalCustomers } from '@/components/dashboard/overview/total-customers';
 import { TotalProfit } from '@/components/dashboard/overview/total-profit';
 import { Traffic } from '@/components/dashboard/overview/traffic';
 import { useLoading } from '@/components/Loading/loading';

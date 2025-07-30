@@ -1,4 +1,4 @@
-export type Category = {
+export interface Category {
   _id: string;
   name: string;
   description: string;
@@ -7,27 +7,27 @@ export type Category = {
   createdAt: string;
   updatedAt: string;
   __v: number;
-};
+}
 
-export type Brand = {
+export interface Brand {
   _id: string;
   name: string;
   description: string;
   logo: string;
   slug: string;
   __v: number;
-};
+}
 
-export type Supplier = {
+export interface Supplier {
   _id: string;
   name: string;
   contact: string;
   address: string;
   slug: string;
   __v: number;
-};
+}
 
-export type Variant = {
+export interface Variant {
   _id: string;
   name: string;
   price: number;
@@ -36,9 +36,9 @@ export type Variant = {
   description: string;
   image: string;
   __v: number;
-};
+}
 
-export type Product = {
+export interface Product {
   _id: string;
   name: string;
   description: string;
@@ -54,4 +54,4 @@ export type Product = {
   createdAt: string;
   updatedAt: string;
   __v: number;
-};
+}

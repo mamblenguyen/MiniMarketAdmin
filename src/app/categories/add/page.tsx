@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -15,17 +15,23 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Unstable_Grid2';
-import Editor from '@/components/Editor/editor';
+import dynamic from 'next/dynamic';
+
+const Editor = dynamic(() => import('@/components/Editor/editor'), {
+  ssr: false, 
+});
 import { nestApiInstance } from '@/constant/api';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { useLoading } from '@/components/Loading/loading';
 
 export default function Page(): React.JSX.Element {
-  const [name, setName] = useState(''); // Brand name
-  const [description, setDescription] = useState(''); // Brand description
-  const [image, setImage] = useState<File | null>(null); // Logo image
- const router = useRouter();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const router = useRouter();
   const { setLoading } = useLoading();
 
   const handleEditorChange = (value: string) => {
@@ -37,15 +43,13 @@ export default function Page(): React.JSX.Element {
   };
 
   const handleImageClick = () => {
-    document.getElementById('image-upload-input')?.click();
+    inputRef.current?.click();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const file = event.target.files[0];
-      if (file) {
-        setImage(file); 
-      }
+    const file = event.target.files?.[0];
+    if (file) {
+      setImage(file);
     }
   };
 
@@ -56,15 +60,18 @@ export default function Page(): React.JSX.Element {
       alert('Please fill in all fields and upload a logo.');
       return;
     }
+
     setLoading(true);
     const formData = new FormData();
     formData.append('name', name);
     formData.append('description', description);
     formData.append('image', image);
+
     try {
       const response = await nestApiInstance.post(`/categories/`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-    });
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
       if (response.data.statusCode === 200) {
         router.push(`/categories`);
         toast.success('Thêm danh mục thành công!');
@@ -74,7 +81,7 @@ export default function Page(): React.JSX.Element {
       }
     } catch (error) {
       console.error('Error during the request:', error);
-      toast.success('Thêm danh mục thất bại!');
+      toast.error('Thêm danh mục thất bại!');
     } finally {
       setLoading(false);
     }
@@ -82,17 +89,17 @@ export default function Page(): React.JSX.Element {
 
   return (
     <Stack spacing={3}>
-      <div>
-        <Typography variant="h4">Danh mục</Typography>
-      </div>
+      <Typography variant="h4">Danh mục</Typography>
+
       <Grid container spacing={3}>
         <Grid lg={4} md={6} xs={12}>
           <Card>
             <CardContent>
               <Stack spacing={2} sx={{ alignItems: 'center' }}>
-                <div>
-                  <Avatar sx={{ height: '80px', width: '80px' }} src={image ? URL.createObjectURL(image) : undefined} />
-                </div>
+                <Avatar
+                  sx={{ height: 80, width: 80 }}
+                  src={image ? URL.createObjectURL(image) : undefined}
+                />
               </Stack>
             </CardContent>
             <Divider />
@@ -102,14 +109,15 @@ export default function Page(): React.JSX.Element {
               </Button>
               <input
                 type="file"
-                id="image-upload-input"
                 accept="image/*"
+                ref={inputRef}
                 onChange={handleFileChange}
                 style={{ display: 'none' }}
               />
             </CardActions>
           </Card>
         </Grid>
+
         <Grid lg={8} md={6} xs={12}>
           <form onSubmit={handleSubmit}>
             <Card>
@@ -124,22 +132,27 @@ export default function Page(): React.JSX.Element {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Nhập tên thương hiệu"
-                        label="name"
+                        label="Tên danh mục"
                       />
                     </FormControl>
                   </Grid>
+
                   <Grid xs={12}>
-                    <InputLabel htmlFor="description">Mô tả</InputLabel>
+                    <InputLabel>Mô tả</InputLabel>
                     <FormControl fullWidth required>
-                      <Editor value={description} onChange={handleEditorChange} onImageUpload={handleImageUpload} />
+                      <Editor
+                        value={description}
+                        onChange={handleEditorChange}
+                        onImageUpload={handleImageUpload}
+                      />
                     </FormControl>
                   </Grid>
                 </Grid>
               </CardContent>
               <Divider />
               <CardActions sx={{ justifyContent: 'flex-end' }}>
-                <Button variant="contained" type="submit" >
-                 Lưu
+                <Button variant="contained" type="submit">
+                  Lưu
                 </Button>
               </CardActions>
             </Card>

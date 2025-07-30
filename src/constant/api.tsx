@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const NEST_API_BASE_URL = 'https://mini-martket.onrender.com';
 
@@ -6,7 +6,6 @@ const nestApiInstance = axios.create({
   baseURL: NEST_API_BASE_URL,
 });
 
-// Gắn token vào mọi request nếu tồn tại
 nestApiInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
@@ -15,7 +14,11 @@ nestApiInstance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: unknown) => {
+    // eslint muốn reject bằng instance của Error
+    const err = error instanceof Error ? error : new Error(String(error));
+    return Promise.reject(err);
+  }
 );
 
 export { nestApiInstance };

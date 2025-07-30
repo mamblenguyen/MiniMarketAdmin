@@ -1,7 +1,6 @@
 'use client';
 
-import * as React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Avatar,
@@ -29,8 +28,11 @@ import { toast } from 'react-toastify';
 import CloseIcon from '@mui/icons-material/Close';
 
 import { nestApiInstance } from '@/constant/api';
-import Editor from '@/components/Editor/editor';
+import dynamic from 'next/dynamic';
 
+const Editor = dynamic(() => import('@/components/Editor/editor'), {
+  ssr: false, 
+});
 interface Option {
   _id: string;
   name: string;
@@ -41,8 +43,6 @@ export default function AddVariant(): React.JSX.Element {
   const [price, setPrice] = useState<number>(0);
   const [stock, setStock] = useState<number>(0);
   const [description, setDescription] = useState('');
-
-  // images là mảng File, hỗ trợ nhiều ảnh
   const [images, setImages] = useState<File[]>([]);
 
   const [categories, setCategories] = useState<Option[]>([]);
@@ -50,16 +50,16 @@ export default function AddVariant(): React.JSX.Element {
   const [suppliers, setSuppliers] = useState<Option[]>([]);
   const [variants, setVariants] = useState<Option[]>([]);
 
-  const [category, setCategory] = useState<string>('');
-  const [brand, setBrand] = useState<string>('');
-  const [supplier, setSupplier] = useState<string>('');
+  const [category, setCategory] = useState('');
+  const [brand, setBrand] = useState('');
+  const [supplier, setSupplier] = useState('');
   const [selectedVariants, setSelectedVariants] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    async function fetchOptions() {
+    const fetchOptions = async () => {
       try {
         const [catRes, brandRes, supplierRes, variantRes] = await Promise.all([
           nestApiInstance.get('/categories'),
@@ -76,13 +76,10 @@ export default function AddVariant(): React.JSX.Element {
         toast.error('Lỗi khi tải dữ liệu danh mục, thương hiệu, nhà cung cấp hoặc biến thể');
         console.error(error);
       }
-    }
+    };
 
     fetchOptions();
   }, []);
- const handleImageUpload = (file: File) => {
-    console.log('Image uploaded:', file);
-  };
 
   const handleEditorChange = (value: string) => {
     setDescription(value);
@@ -92,38 +89,30 @@ export default function AddVariant(): React.JSX.Element {
     document.getElementById('image-upload-input')?.click();
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files) return;
 
-    // Lấy tất cả file ảnh mới được chọn
     const files = Array.from(event.target.files);
-    // Lọc file phải là ảnh
     const validFiles = files.filter((file) => file.type.startsWith('image/'));
 
     if (validFiles.length !== files.length) {
       toast.warning('Một số tệp không phải là ảnh và đã bị bỏ qua.');
     }
 
-    // Mình sẽ gộp ảnh mới vào ảnh hiện có (append), không thay thế
     setImages((prev) => [...prev, ...validFiles]);
-
-    // Clear input để có thể chọn lại cùng file nếu muốn
     event.target.value = '';
   };
 
-  // Xoá ảnh đã chọn khỏi mảng
   const handleRemoveImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleVariantsChange = (event: SelectChangeEvent<typeof selectedVariants>) => {
-    const {
-      target: { value },
-    } = event;
+  const handleVariantsChange = (event: SelectChangeEvent<string[]>) => {
+    const value = event.target.value;
     setSelectedVariants(typeof value === 'string' ? value.split(',') : value);
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (!name || !description || images.length === 0 || !category || !brand || !supplier) {
@@ -140,8 +129,6 @@ export default function AddVariant(): React.JSX.Element {
     formData.append('brand', brand);
     formData.append('supplier', supplier);
     selectedVariants.forEach((v) => formData.append('variants[]', v));
-
-    // Thêm tất cả ảnh vào formData với key 'images'
     images.forEach((img) => formData.append('images', img));
 
     setLoading(true);
@@ -175,17 +162,19 @@ export default function AddVariant(): React.JSX.Element {
               <Divider />
               <CardContent>
                 <Stack spacing={3}>
+                  {/* Input Tên */}
                   <FormControl fullWidth required>
                     <InputLabel htmlFor="variant-name">Tên sản phẩm</InputLabel>
                     <OutlinedInput
                       id="variant-name"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      label="Tên biến thể"
-                      placeholder="Ví dụ: Tuýp, Hộp, Lọ..."
+                      label="Tên sản phẩm"
+                      placeholder="Ví dụ: Sữa bột Vinamilk"
                     />
                   </FormControl>
 
+                  {/* Giá */}
                   <FormControl fullWidth>
                     <InputLabel htmlFor="variant-price">Giá</InputLabel>
                     <OutlinedInput
@@ -198,6 +187,7 @@ export default function AddVariant(): React.JSX.Element {
                     />
                   </FormControl>
 
+                  {/* Tồn kho */}
                   <FormControl fullWidth>
                     <InputLabel htmlFor="variant-stock">Tồn kho</InputLabel>
                     <OutlinedInput
@@ -210,14 +200,14 @@ export default function AddVariant(): React.JSX.Element {
                     />
                   </FormControl>
 
+                  {/* Danh mục */}
                   <FormControl fullWidth required>
                     <InputLabel id="category-label">Danh mục</InputLabel>
                     <Select
                       labelId="category-label"
-                      id="category"
                       value={category}
-                      label="Danh mục"
                       onChange={(e) => setCategory(e.target.value)}
+                      label="Danh mục"
                     >
                       {categories.map((cat) => (
                         <MenuItem key={cat._id} value={cat._id}>
@@ -227,14 +217,14 @@ export default function AddVariant(): React.JSX.Element {
                     </Select>
                   </FormControl>
 
+                  {/* Thương hiệu */}
                   <FormControl fullWidth required>
                     <InputLabel id="brand-label">Thương hiệu</InputLabel>
                     <Select
                       labelId="brand-label"
-                      id="brand"
                       value={brand}
-                      label="Thương hiệu"
                       onChange={(e) => setBrand(e.target.value)}
+                      label="Thương hiệu"
                     >
                       {brands.map((b) => (
                         <MenuItem key={b._id} value={b._id}>
@@ -244,14 +234,14 @@ export default function AddVariant(): React.JSX.Element {
                     </Select>
                   </FormControl>
 
+                  {/* Nhà cung cấp */}
                   <FormControl fullWidth required>
                     <InputLabel id="supplier-label">Nhà cung cấp</InputLabel>
                     <Select
                       labelId="supplier-label"
-                      id="supplier"
                       value={supplier}
-                      label="Nhà cung cấp"
                       onChange={(e) => setSupplier(e.target.value)}
+                      label="Nhà cung cấp"
                     >
                       {suppliers.map((s) => (
                         <MenuItem key={s._id} value={s._id}>
@@ -261,11 +251,11 @@ export default function AddVariant(): React.JSX.Element {
                     </Select>
                   </FormControl>
 
+                  {/* Biến thể */}
                   <FormControl fullWidth>
                     <InputLabel id="variants-label">Biến thể</InputLabel>
                     <Select
                       labelId="variants-label"
-                      id="variants"
                       multiple
                       value={selectedVariants}
                       onChange={handleVariantsChange}
@@ -278,16 +268,17 @@ export default function AddVariant(): React.JSX.Element {
                     >
                       {variants.map((v) => (
                         <MenuItem key={v._id} value={v._id}>
-                          <Checkbox checked={selectedVariants.indexOf(v._id) > -1} />
+                          <Checkbox checked={selectedVariants.includes(v._id)} />
                           <ListItemText primary={v.name} />
                         </MenuItem>
                       ))}
                     </Select>
                   </FormControl>
 
+                  {/* Upload Ảnh */}
                   <Stack spacing={1}>
                     <Typography variant="subtitle1" fontWeight={600}>
-                      Ảnh sản phẩm (bấm để chọn nhiều ảnh)
+                      Ảnh sản phẩm
                     </Typography>
 
                     <Box
@@ -313,22 +304,24 @@ export default function AddVariant(): React.JSX.Element {
                         <Box key={index} sx={{ position: 'relative' }}>
                           <Avatar
                             src={URL.createObjectURL(file)}
-                            alt={`Ảnh sản phẩm ${index + 1}`}
-                            sx={{ width: 100, height: 100, cursor: 'pointer' }}
+                            alt={`Ảnh ${index + 1}`}
+                            sx={{ width: 100, height: 100 }}
                           />
                           <IconButton
-                            aria-label="remove image"
-                            size="small"
                             onClick={(e) => {
-                              e.stopPropagation(); // tránh kích hoạt chọn file
+                              e.stopPropagation();
                               handleRemoveImage(index);
                             }}
+                            size="small"
                             sx={{
                               position: 'absolute',
                               top: -8,
                               right: -8,
                               bgcolor: 'rgba(255,255,255,0.7)',
-                              '&:hover': { bgcolor: 'rgba(255,0,0,0.8)', color: 'white' },
+                              '&:hover': {
+                                bgcolor: 'rgba(255,0,0,0.8)',
+                                color: '#fff',
+                              },
                             }}
                           >
                             <CloseIcon fontSize="small" />
@@ -347,22 +340,18 @@ export default function AddVariant(): React.JSX.Element {
                     />
                   </Stack>
 
+                  {/* Mô tả */}
                   <Stack spacing={1}>
                     <Typography variant="subtitle1" fontWeight={600}>
                       Mô tả
                     </Typography>
-                      <Editor value={description} onChange={handleEditorChange} onImageUpload={handleImageUpload} />
+                    <Editor value={description} onChange={handleEditorChange} onImageUpload={() => {}} />
                   </Stack>
                 </Stack>
               </CardContent>
               <Divider />
               <CardActions>
-                <Button
-                  variant="contained"
-                  type="submit"
-                  disabled={loading}
-                  color="primary"
-                >
+                <Button type="submit" variant="contained" disabled={loading}>
                   {loading ? 'Đang lưu...' : 'Lưu'}
                 </Button>
               </CardActions>

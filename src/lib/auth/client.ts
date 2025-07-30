@@ -1,7 +1,6 @@
 'use client';
 
 import { nestApiInstance } from '@/constant/api';
-
 import type { User } from '@/types/user';
 
 export interface SignUpParams {
@@ -25,6 +24,20 @@ export interface ResetPasswordParams {
   email: string;
 }
 
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface ErrorResponse {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}
+
 class AuthClient {
   async signUp(_: SignUpParams): Promise<{ error?: string }> {
     return { error: 'Sign up not implemented' };
@@ -36,7 +49,7 @@ class AuthClient {
 
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
     try {
-      const res = await nestApiInstance.post('/auth/login', {
+      const res = await nestApiInstance.post<AuthResponse>('/auth/login', {
         email: params.email,
         password: params.password,
         device: params.device || 'web',
@@ -46,13 +59,17 @@ class AuthClient {
 
       if (accessToken) {
         localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken); // tuỳ bạn có cần hay không
+        localStorage.setItem('refreshToken', refreshToken);
         return {};
-      } else {
-        return { error: 'No access token received' };
       }
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || 'Login failed. Please try again.';
+
+      return { error: 'No access token received' };
+    } catch (err: unknown) {
+      const error = err as ErrorResponse;
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Login failed. Please try again.';
       return { error: message };
     }
   }
@@ -68,14 +85,12 @@ class AuthClient {
   async getUser(): Promise<{ data?: User | null; error?: string }> {
     const token = localStorage.getItem('accessToken');
 
-    if (!token) {
-      return { data: null };
-    }
+    if (!token) return { data: null };
 
     try {
-      const res = await nestApiInstance.get('/auth/me');
+      const res = await nestApiInstance.get<{ data: User }>('/auth/me');
       return { data: res.data.data };
-    } catch (err: any) {
+    } catch (_err: unknown) {
       return { error: 'Failed to fetch user info' };
     }
   }

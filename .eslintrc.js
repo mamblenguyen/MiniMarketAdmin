@@ -4,6 +4,7 @@ const project = resolve(__dirname, 'tsconfig.json');
 
 module.exports = {
   root: true,
+  ignorePatterns: ['.next/', 'node_modules/', 'dist/', '*.config.js'], // <-- thêm dòng này
   extends: [
     require.resolve('@vercel/style-guide/eslint/node'),
     require.resolve('@vercel/style-guide/eslint/typescript'),
@@ -50,33 +51,37 @@ module.exports = {
       'error',
       {
         cases: {
-          kebabCase: true, // personal style
+          kebabCase: true,
           pascalCase: true,
         },
       },
     ],
-
-    // Deactivated
-    '@typescript-eslint/dot-notation': 'off', // paths are used with a dot notation
-    '@typescript-eslint/no-misused-promises': 'off', // onClick with async fails
-    '@typescript-eslint/no-non-null-assertion': 'off', // sometimes compiler is unable to detect
-    '@typescript-eslint/no-unnecessary-condition': 'off', // remove when no static data is used
-    '@typescript-eslint/require-await': 'off', // Server Actions require async flag always
-    '@typescript-eslint/prefer-nullish-coalescing': 'off', // personal style
+    '@typescript-eslint/dot-notation': 'off',
+    '@typescript-eslint/no-misused-promises': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-unnecessary-condition': 'off',
+    '@typescript-eslint/require-await': 'off',
+    '@typescript-eslint/prefer-nullish-coalescing': 'off',
     '@typescript-eslint/restrict-template-expressions': [
       'error',
       {
         allowNumber: true,
       },
     ],
-    'import/no-default-export': 'off', // Next.js components must be exported as default
-    'import/no-extraneous-dependencies': 'off', // conflict with sort-imports plugin
-    'import/order': 'off', // using custom sort plugin
-    'no-nested-ternary': 'off', // personal style
-    'no-redeclare': 'off', // conflict with TypeScript function overloads
-    'react/jsx-fragments': 'off', // personal style
-    'react/prop-types': 'off', // TypeScript is used for type checking
+    'import/no-default-export': 'off',
+    'import/no-extraneous-dependencies': 'off',
+    'import/order': 'off',
+    'no-nested-ternary': 'off',
+    'no-redeclare': 'off',
+    'react/jsx-fragments': 'off',
+    'react/prop-types': 'off',
+    '@next/next/no-img-element': 'off',
 
-    '@next/next/no-img-element': 'off', // Temporary disabled
+    'react/jsx-key': 'warn',
+  'react/no-unescaped-entities': 'warn',
+  '@next/next/no-html-link-for-pages': 'warn',
+  'jsx-a11y/alt-text': 'warn',
+  'jsx-a11y/anchor-is-valid': 'warn',
+  'no-console': 'warn',
   },
 };

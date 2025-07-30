@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Avatar,
@@ -21,7 +21,11 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { toast } from 'react-toastify';
 
 import { nestApiInstance } from '@/constant/api';
-import Editor from '@/components/Editor/editor';
+import dynamic from 'next/dynamic';
+
+const Editor = dynamic(() => import('@/components/Editor/editor'), {
+  ssr: false, // ⛔ Ngăn không render Editor ở server
+});
 
 export default function AddVariant(): React.JSX.Element {
   const [name, setName] = useState('');
@@ -32,12 +36,15 @@ export default function AddVariant(): React.JSX.Element {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // ✅ Dùng useRef thay vì document.getElementById
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const handleEditorChange = (value: string) => {
     setDescription(value);
   };
 
   const handleImageClick = () => {
-    document.getElementById('image-upload-input')?.click();
+    fileInputRef.current?.click();
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +172,7 @@ export default function AddVariant(): React.JSX.Element {
                         </Button>
                         <input
                           type="file"
-                          id="image-upload-input"
+                          ref={fileInputRef}
                           accept="image/*"
                           onChange={handleFileChange}
                           style={{ display: 'none' }}
