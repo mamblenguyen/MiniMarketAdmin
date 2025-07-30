@@ -1,20 +1,8 @@
 'use client';
 
+import { nestApiInstance } from '@/constant/api';
+
 import type { User } from '@/types/user';
-
-function generateToken(): string {
-  const arr = new Uint8Array(12);
-  window.crypto.getRandomValues(arr);
-  return Array.from(arr, (v) => v.toString(16).padStart(2, '0')).join('');
-}
-
-const user = {
-  id: 'USR-000',
-  avatar: '/assets/avatar.png',
-  firstName: 'Sofia',
-  lastName: 'Rivers',
-  email: 'sofia@devias.io',
-} satisfies User;
 
 export interface SignUpParams {
   firstName: string;
@@ -30,6 +18,7 @@ export interface SignInWithOAuthParams {
 export interface SignInWithPasswordParams {
   email: string;
   password: string;
+  device?: string;
 }
 
 export interface ResetPasswordParams {
@@ -38,13 +27,7 @@ export interface ResetPasswordParams {
 
 class AuthClient {
   async signUp(_: SignUpParams): Promise<{ error?: string }> {
-    // Make API request
-
-    // We do not handle the API, so we'll just generate a token and store it in localStorage.
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
-    return {};
+    return { error: 'Sign up not implemented' };
   }
 
   async signInWithOAuth(_: SignInWithOAuthParams): Promise<{ error?: string }> {
@@ -52,19 +35,26 @@ class AuthClient {
   }
 
   async signInWithPassword(params: SignInWithPasswordParams): Promise<{ error?: string }> {
-    const { email, password } = params;
+    try {
+      const res = await nestApiInstance.post('/auth/login', {
+        email: params.email,
+        password: params.password,
+        device: params.device || 'web',
+      });
 
-    // Make API request
+      const { accessToken, refreshToken } = res.data;
 
-    // We do not handle the API, so we'll check if the credentials match with the hardcoded ones.
-    if (email !== 'sofia@devias.io' || password !== 'Secret1') {
-      return { error: 'Invalid credentials' };
+      if (accessToken) {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken); // tuỳ bạn có cần hay không
+        return {};
+      } else {
+        return { error: 'No access token received' };
+      }
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Login failed. Please try again.';
+      return { error: message };
     }
-
-    const token = generateToken();
-    localStorage.setItem('custom-auth-token', token);
-
-    return {};
   }
 
   async resetPassword(_: ResetPasswordParams): Promise<{ error?: string }> {
@@ -72,25 +62,26 @@ class AuthClient {
   }
 
   async updatePassword(_: ResetPasswordParams): Promise<{ error?: string }> {
-    return { error: 'Update reset not implemented' };
+    return { error: 'Update password not implemented' };
   }
 
   async getUser(): Promise<{ data?: User | null; error?: string }> {
-    // Make API request
-
-    // We do not handle the API, so just check if we have a token in localStorage.
-    const token = localStorage.getItem('custom-auth-token');
+    const token = localStorage.getItem('accessToken');
 
     if (!token) {
       return { data: null };
     }
 
-    return { data: user };
+    try {
+      const res = await nestApiInstance.get('/auth/me');
+      return { data: res.data.data };
+    } catch (err: any) {
+      return { error: 'Failed to fetch user info' };
+    }
   }
 
   async signOut(): Promise<{ error?: string }> {
-    localStorage.removeItem('custom-auth-token');
-
+    localStorage.removeItem('accessToken');
     return {};
   }
 }

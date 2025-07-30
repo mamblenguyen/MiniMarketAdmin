@@ -166,17 +166,17 @@ export default function AddVariant(): React.JSX.Element {
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h4">Thêm Biến Thể</Typography>
+      <Typography variant="h4">Thêm Sản Phẩm</Typography>
       <form onSubmit={handleSubmit}>
         <Grid container spacing={3}>
           <Grid xs={12}>
             <Card>
-              <CardHeader title="Thông tin biến thể" subheader="Vui lòng nhập đầy đủ các trường bên dưới" />
+              <CardHeader title="Thông tin sản phẩm" subheader="Vui lòng nhập đầy đủ các trường bên dưới" />
               <Divider />
               <CardContent>
                 <Stack spacing={3}>
                   <FormControl fullWidth required>
-                    <InputLabel htmlFor="variant-name">Tên biến thể</InputLabel>
+                    <InputLabel htmlFor="variant-name">Tên sản phẩm</InputLabel>
                     <OutlinedInput
                       id="variant-name"
                       value={name}

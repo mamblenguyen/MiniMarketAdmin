@@ -231,7 +231,7 @@ const fetchStatusPercent = async () => {
           trend={MonthReport?.trend ?? 'down'} // Fallback to 'down' if undefined
           sx={{ height: '100%' }}
           value={MonthReport ? formatCurrency(MonthReport.totalThisMonth) : ''}
-          title="Doanh thu tháng này"
+          title="Doanh thu tháng"
           description="So với tháng trước"
         />
       </Grid>

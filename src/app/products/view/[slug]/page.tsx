@@ -132,7 +132,7 @@ export default function Page(): React.JSX.Element {
                     />
                     <Box>
                       <Typography fontWeight="bold">Danh mục:</Typography>
-                      <Typography>{product.brand.name}</Typography>
+                      <Typography>{product.category.name}</Typography>
                       {/* <BrandDescription description={product.brand.description} /> */}
                     </Box>
                   </Box>

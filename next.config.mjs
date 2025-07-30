@@ -2,7 +2,7 @@
 const config = {
 
     images: {
-        domains: ['route-management-storge.s3.ap-southeast-1.amazonaws.com'],
+        domains: ['route-management-storge.s3.ap-southeast-1.amazonaws.com' ,'route-management-storge.s3.amazonaws.com'],
       },
 };
 

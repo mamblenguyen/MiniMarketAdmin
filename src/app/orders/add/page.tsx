@@ -125,36 +125,46 @@ export default function OrderPage() {
 
   // Gọi API lấy QR
   async function handleGenerateQr() {
-    if (selectedItems.length === 0) {
-      toast.error('Vui lòng chọn ít nhất một sản phẩm');
-      return;
-    }
-    if (tab === 'delivery' && !validateShippingAddress()) {
-      toast.error('Vui lòng điền đầy đủ thông tin địa chỉ giao hàng');
-      return;
-    }
+        const { recipientName, phone } = shippingAddress;
 
-    try {
-      setLoading(true);
-      const payload = {
-        orderType: tab,
-        items: selectedItems.map(({ product, quantity }) => ({
-          product: product._id,
-          quantity,
-        })),
-        paymentMethod,
-        note: note.trim(),
-        ...(tab === 'delivery' ? { shippingAddress } : {}),
-      };
-      const { data } = await nestApiInstance.post('/orders/generate-qr', payload);
-      setQrCodeUrl(data.qrCodeUrl);
-      setPaymentStep('qr_displayed');
-    } catch (error) {
-      toast.error('Lỗi khi tạo mã QR');
-    } finally {
-      setLoading(false);
-    }
+        console.log(recipientName , phone);
+        
+  if (selectedItems.length === 0) {
+    toast.error('Vui lòng chọn ít nhất một sản phẩm');
+    return;
   }
+
+  if (tab === 'delivery' && !validateShippingAddress()) {
+    toast.error('Vui lòng điền đầy đủ thông tin địa chỉ giao hàng');
+    return;
+  }
+
+
+  try {
+    setLoading(true);
+    const payload = {
+      orderType: tab,
+      items: selectedItems.map(({ product, quantity }) => ({
+        product: product._id,
+        quantity,
+      })),
+      paymentMethod,
+      note: note.trim(),
+      recipientName: recipientName.trim(),
+      phone: phone.trim(),
+      ...(tab === 'delivery' ? { shippingAddress } : {}),
+    };
+
+    const { data } = await nestApiInstance.post('/orders/generate-qr', payload);
+    setQrCodeUrl(data.qrCodeUrl);
+    setPaymentStep('qr_displayed');
+  } catch (error) {
+    toast.error('Lỗi khi tạo mã QR');
+  } finally {
+    setLoading(false);
+  }
+}
+
 
   // Gọi API tạo đơn thật
   async function handleCreateOrder() {
